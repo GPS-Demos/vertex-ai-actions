@@ -6,7 +6,8 @@ from sendgrid.helpers.mail import Mail
 from icon import icon_data_uri
 from utils import authenticate, handle_error, list_to_html, safe_cast, sanitize_and_load_json_str
 from palm_api import model_with_limit_and_backoff, reduce, MODEL_TYPES, DEFAULT_MODEL_TYPE
-
+from google.cloud import bigquery
+from datetime import datetime
 
 BASE_DOMAIN = 'https://{}-{}.cloudfunctions.net/{}-'.format(os.environ.get(
     'REGION'), os.environ.get('PROJECT'), os.environ.get('ACTION_NAME'))
@@ -230,20 +231,31 @@ def action_execute(request):
     if body == '':
         body = 'No response from model. Try asking a more specific question.'
 
-    try:
-        # todo - make email prettier
-        message = Mail(
-            from_email=os.environ.get('EMAIL_SENDER'),
-            to_emails=action_params['email'],
-            subject='Your GenAI Report from Looker',
-            html_content=body
-        )
+    # try:
+    #     # todo - make email prettier
+    #     message = Mail(
+    #         from_email=os.environ.get('EMAIL_SENDER'),
+    #         to_emails=action_params['email'],
+    #         subject='Your GenAI Report from Looker',
+    #         html_content=body
+    #     )
 
-        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-        response = sg.send(message)
-        print('Message status code: {}'.format(response.status_code))
+    #     sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+    #     response = sg.send(message)
+    #     print('Message status code: {}'.format(response.status_code))
+    # except Exception as e:
+    #     error = handle_error('SendGrid Error: ' + e.message, 400)
+    #     return error
+    try:
+        bq_client = bigquery.Client()
+        current_dateTime = datetime.now()
+        table = bq_client.get_table("{}.{}.{}".format("transportation-platform-376719", "transportation_data_aiml", "genai_vertex-ai-looker-actions"))
+        rows_to_insert = [{u"query_time": current_dateTime, u"question_genai": question, u"action_parameters_looker": action_params,u"form_parameters_genai": form_params,u"answer_genai": reduced_summary}]
+        response = bq_client.insert_rows_json(table, rows_to_insert)
+        if response == []:
+            print('Insert into BQ status code: {}'.format(response.status_code))
     except Exception as e:
-        error = handle_error('SendGrid Error: ' + e.message, 400)
+        error = handle_error('Insert into BQ Error: ' + e.message, 400)
         return error
 
     return Response(status=200, mimetype='application/json')
