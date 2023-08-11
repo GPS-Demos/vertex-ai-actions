@@ -250,7 +250,7 @@ def action_execute(request):
         bq_client = bigquery.Client()
         current_dateTime = datetime.now()
         table = bq_client.get_table("{}.{}.{}".format("transportation-platform-376719", "transportation_data_aiml", "genai_vertex-ai-looker-actions"))
-        rows_to_insert = [{u"query_time": current_dateTime, u"question_genai": question, u"action_parameters_looker": action_params,u"form_parameters_genai": form_params,u"answer_genai": reduced_summary}]
+        rows_to_insert = [{u"query_time": current_dateTime, u"question_genai": question, u"action_parameters_looker": action_params,u"form_parameters_genai": form_params,u"answer_genai": summary}]
         response = bq_client.insert_rows_json(table, rows_to_insert)
         if response == []:
             print('Insert into BQ status code: {}'.format(response.status_code))
