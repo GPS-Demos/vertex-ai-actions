@@ -212,6 +212,7 @@ def action_execute(request):
         # if all, send summary on top of all_data
         if form_params['row_or_all'] == 'all':
             if len(summary) == 1:
+                bq_summary = summary[0]
                 body = 'Prompt Result:<br><strong>{}</strong><br><br><br>'.format(
                     summary[0].replace('\n', '<br>'))
             else:
@@ -252,10 +253,10 @@ def action_execute(request):
         bq_client = bigquery.Client()
         current_dateTime = str(datetime.now())
         table = bq_client.get_table("{}.{}.{}".format("transportation-platform-376719", "transportation_data_aiml", "genai_vertex-ai-looker-actions"))
-        rows_to_insert = [{u"query_time": current_dateTime, u"question_genai": str(question), u"action_parameters_looker": str(action_params),u"form_parameters_genai": str(form_params),u"answer_genai": str(bq_summary)}]
+        rows_to_insert = [{u"query_time": current_dateTime, u"question_genai": str(question), u"action_parameters_looker": str(action_params),u"form_parameters_genai": str(form_params),u"answer_genai": bq_summary}]
         response = bq_client.insert_rows_json(table, rows_to_insert)
         print('Insert into BQ has started')
-        print("bq_summary"+str(bq_summary))
+        print("bq_summary"+bq_summary)
         print(response)
         if response == []:
             print('Insert into BQ status successful: {}'.format(response))
