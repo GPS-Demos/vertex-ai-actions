@@ -174,8 +174,8 @@ def action_execute(request):
     action_params = request_json['data']
     form_params = request_json['form_params']
     question = form_params['question']
-    print(action_params)
-    print(form_params)
+    print('action_params'+str(action_params))
+    print('form_params'+str(form_params))
 
     maximum_max_output_tokens = MODEL_TYPES[form_params['model_type']]['max_output_tokens'] if 'model_type' in form_params else 1024
 
@@ -192,6 +192,7 @@ def action_execute(request):
     # placeholder for model error email response
     body = 'There was a problem running the model. Please try again with less data. '
     summary = ''
+    bq_summary = ''
     row_chunks = 50  # mumber of rows to summarize together
     try:
         all_data = sanitize_and_load_json_str(
@@ -216,6 +217,7 @@ def action_execute(request):
             else:
                 reduced_summary = reduce(
                     '\n'.join(summary), model_type, temperature, max_output_tokens, top_k, top_p)
+                bq_summary = '\n'.join(summary)
                 body = 'Final Prompt Result:<br><strong>{}</strong><br><br>'.format(
                     reduced_summary.replace('\n', '<br>'))
                 body += '<br><br><strong>Batch Prompt Result:</strong><br>'
@@ -250,12 +252,15 @@ def action_execute(request):
         bq_client = bigquery.Client()
         current_dateTime = str(datetime.now())
         table = bq_client.get_table("{}.{}.{}".format("transportation-platform-376719", "transportation_data_aiml", "genai_vertex-ai-looker-actions"))
-        rows_to_insert = [{u"query_time": current_dateTime, u"question_genai": question, u"action_parameters_looker": action_params,u"form_parameters_genai": form_params,u"answer_genai": summary}]
+        rows_to_insert = [{u"query_time": current_dateTime, u"question_genai": str(question), u"action_parameters_looker": str(action_params),u"form_parameters_genai": str(form_params),u"answer_genai": str(bq_summary)}]
         response = bq_client.insert_rows_json(table, rows_to_insert)
+        print('Insert into BQ has started')
+        print("bq_summary"+str(bq_summary))
+        print(response)
         if response == []:
-            print('Insert into BQ is successful: {}'.format(response.status_code))
+            print('Insert into BQ status successful: {}'.format(response))
     except Exception as e:
         error = handle_error('Insert into BQ Error: ' + e.message, 400)
         return error
 
-    return Response(status=200, mimetype='application/json')
+    return Response(response='BQ data insertion is successful',status=200, mimetype='application/json')
