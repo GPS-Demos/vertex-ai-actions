@@ -19,6 +19,21 @@ The two variables you must to modify are:
 - `PROJECT` - ID you want to deploy the Cloud Functions to
 - `EMAIL_SENDER` - Email address of the sender
 
+1. Create table in bigquery using below statement:
+
+   ```
+   Create or replace table `transportation-platform-376719.transportation_data_aiml.genai_vertex-ai-looker-actions`
+   (
+   query_time TIMESTAMP,
+   question_genai STRING,
+   look_name STRING,
+   action_parameters_looker STRING,
+   form_parameters_genai STRING,
+   answer_genai STRING
+   );
+
+   ```
+
 1. Set the variables below:
 
    ```
