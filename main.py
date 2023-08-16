@@ -72,7 +72,7 @@ def action_form(request):
     if 'model_type' in form_params:
         default_model_type = form_params['model_type']
 
-    default_look_name = 'Type your look name to indentify response related to look'
+    default_look_name = 'Type your look name to identify response related to the particular look'
     if 'look_name' in form_params:
         default_look_name = form_params['look_name']
 
