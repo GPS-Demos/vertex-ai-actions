@@ -109,7 +109,7 @@ def action_form(request):
         {
         'name': 'look_name',
         'label': 'Type your Look Name',
-        'description': 'Type your look name to indentify response related to look.',
+        'description': 'Copy and enter the schedule name from above look title.',
         'type': 'textarea',
         'required': True,
         "default":  default_look_name
