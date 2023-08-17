@@ -72,10 +72,6 @@ def action_form(request):
     if 'model_type' in form_params:
         default_model_type = form_params['model_type']
 
-    default_look_name = ''
-    if 'look_name' in form_params:
-        default_look_name = form_params['look_name']
-
     # step 1 - select a prompt
     response = [{
         'name': 'question',
@@ -105,14 +101,6 @@ def action_form(request):
         'options': [{'name': 'yes', 'label': 'Yes'},
                     {'name': 'no', 'label': 'No'}],
         'interactive': True  # dynamic field for model specific options
-    },
-        {
-        'name': 'look_name',
-        'label': 'Type your Look Name',
-        'description': 'Copy and enter the schedule name from above look title.',
-        'type': 'textarea',
-        'required': True,
-        "default":  default_look_name
     }]
 
     # step 2 - optional - choose model type
@@ -182,13 +170,16 @@ def action_execute(request):
         return auth
 
     request_json = request.get_json()
+    scheduled_plan = request_json['scheduled_plan']
+    look_title = scheduled_plan['title']
     attachment = request_json['attachment']
     action_params = request_json['data']
     form_params = request_json['form_params']
     question = form_params['question']
-    look_name = form_params['look_name']
+    print('scheduled_plan'+str(scheduled_plan))
+    print('look_title'+str(look_title))
     print('request_json'+str(request_json))
-    print('attachment'+str(attachment))
+    print('data'+str(attachment))
     print('action_params'+str(action_params))
     print('form_params'+str(form_params))
 
@@ -268,7 +259,7 @@ def action_execute(request):
         bq_client = bigquery.Client()
         current_dateTime = str(datetime.now())
         table = bq_client.get_table("{}.{}.{}".format("transportation-platform-376719", "transportation_data_aiml", "genai_vertex-ai-looker-actions"))
-        rows_to_insert = [{u"query_time": current_dateTime, u"question_genai": str(question), u"look_name": str(look_name), u"action_parameters_looker": str(action_params),u"form_parameters_genai": str(form_params),u"answer_genai": bq_summary}]
+        rows_to_insert = [{u"query_time": current_dateTime, u"question_genai": str(question), u"look_title": str(look_title), u"looker_source_data": str(attachment), u"looker_scheduled_plan": str(scheduled_plan), u"action_parameters_looker": str(action_params),u"form_parameters_genai": str(form_params),u"answer_genai": bq_summary}]
         response = bq_client.insert_rows_json(table, rows_to_insert)
         print('Insert into BQ has started')
         print("bq_summary"+bq_summary)

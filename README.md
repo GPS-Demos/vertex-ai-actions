@@ -26,7 +26,9 @@ The two variables you must to modify are:
    (
    query_time TIMESTAMP,
    question_genai STRING,
-   look_name STRING,
+   look_title STRING,
+   looker_source_data STRING,
+   looker_scheduled_plan STRING,
    action_parameters_looker STRING,
    form_parameters_genai STRING,
    answer_genai STRING
