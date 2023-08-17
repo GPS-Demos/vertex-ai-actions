@@ -176,12 +176,12 @@ def action_execute(request):
     action_params = request_json['data']
     form_params = request_json['form_params']
     question = form_params['question']
-    print('scheduled_plan'+str(scheduled_plan))
-    print('look_title'+str(look_title))
-    print('request_json'+str(request_json))
-    print('data'+str(attachment))
-    print('action_params'+str(action_params))
-    print('form_params'+str(form_params))
+    print('scheduled_plan:'+str(scheduled_plan))
+    print('look_title:'+str(look_title))
+    print('request_json:'+str(request_json))
+    print('data:'+str(attachment))
+    print('action_params:'+str(action_params))
+    print('form_params:'+str(form_params))
 
     maximum_max_output_tokens = MODEL_TYPES[form_params['model_type']]['max_output_tokens'] if 'model_type' in form_params else 1024
 
