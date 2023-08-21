@@ -213,6 +213,7 @@ def action_execute(request):
         if form_params['row_or_all'] == 'row':
             for i in range(len(all_data)):
                 all_data[i]['prompt_result'] = summary[i]
+            bq_summary = '\n'.join(summary)
             body = list_to_html(all_data)
 
         # if all, send summary on top of all_data
