@@ -224,7 +224,7 @@ def action_execute(request):
             else:
                 reduced_summary = reduce(
                     '\n'.join(summary), model_type, temperature, max_output_tokens, top_k, top_p)
-                bq_summary = '\n'.join(summary)
+                bq_summary = reduced_summary
                 body = 'Final Prompt Result:<br><strong>{}</strong><br><br>'.format(
                     reduced_summary.replace('\n', '<br>'))
                 body += '<br><br><strong>Batch Prompt Result:</strong><br>'
