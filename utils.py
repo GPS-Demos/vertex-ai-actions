@@ -12,16 +12,20 @@ def authenticate(request):
     if request.method != 'POST' or 'authorization' not in request.headers:
         error = handle_error('Request must be POST with auth token', 401)
         return error
-    else:
-        expected_auth_header = 'Token token="{}"'.format(
-            os.environ.get('LOOKER_AUTH_TOKEN'))
-        submitted_auth = request.headers['authorization']
-        if hmac.compare_digest(expected_auth_header, submitted_auth):
-            return Response(status=200)
+    configured_token = os.environ.get('LOOKER_AUTH_TOKEN')
+    if not configured_token or not configured_token.strip():
+        # Fail closed immediately if LOOKER_AUTH_TOKEN is missing or empty
+        # Never format None/empty token into expected_auth_header
+        error = handle_error('Authentication token not configured on server', 401)
+        return error
 
-        else:
-            error = handle_error('Incorrect token', 403)
-            return error
+    expected_auth_header = 'Token token="{}"'.format(configured_token.strip())
+    submitted_auth = request.headers.get('authorization', '')
+    if hmac.compare_digest(expected_auth_header, submitted_auth):
+        return Response(status=200)
+    else:
+        error = handle_error('Incorrect token', 403)
+        return error
 
 
 def handle_error(message, status):

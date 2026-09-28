@@ -8,6 +8,7 @@ from utils import authenticate, handle_error, list_to_html, safe_cast, sanitize_
 from palm_api import model_with_limit_and_backoff, reduce, MODEL_TYPES, DEFAULT_MODEL_TYPE
 from google.cloud import bigquery
 from datetime import datetime
+import ratelimit
 
 BASE_DOMAIN = 'https://{}-{}.cloudfunctions.net/{}-'.format(os.environ.get(
     'REGION'), os.environ.get('PROJECT'), os.environ.get('ACTION_NAME'))
@@ -234,8 +235,10 @@ def action_execute(request):
 
             body += list_to_html(all_data)
 
+    except ratelimit.RateLimitException as e:
+        return handle_error('Rate limit exceeded: too many requests. Please try again later.', 429)
     except Exception as e:
-        body += 'PaLM API Error: ' + e.message
+        body += 'PaLM API Error: ' + str(e)
         print(body)
 
     if body == '':
@@ -249,12 +252,12 @@ def action_execute(request):
     #         subject='Your GenAI Report from Looker',
     #         html_content=body
     #     )
-
+    #
     #     sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
     #     response = sg.send(message)
     #     print('Message status code: {}'.format(response.status_code))
     # except Exception as e:
-    #     error = handle_error('SendGrid Error: ' + e.message, 400)
+    #     error = handle_error('SendGrid Error: ' + str(e), 400)
     #     return error
     try:
         bq_client = bigquery.Client()
@@ -268,7 +271,7 @@ def action_execute(request):
         if response == []:
             print('Insert into BQ status successful: {}'.format(response))
     except Exception as e:
-        error = handle_error('Insert into BQ Error: ' + e.message, 400)
+        error = handle_error('Insert into BQ Error: ' + str(e), 400)
         return error
 
     return Response(response='BQ data insertion is successful',status=200, mimetype='application/json')
